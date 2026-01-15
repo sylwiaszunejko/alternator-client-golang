@@ -133,6 +133,35 @@ _, err := ddb.GetItem(ctx, &dynamodb.GetItemInput{TableName: aws.String("tbl"), 
 ```
 SDK v1 users can apply the same pattern with the `*WithContext` methods (e.g., `GetItemWithContext`).
 
+### HTTP connection reuse
+
+**Connection reuse is enabled by default** and optimized for Alternator clusters.
+
+The client automatically maintains persistent HTTP connections to reduce latency and server load. Key settings:
+
+- **MaxIdleConns**: 100 (total idle connections across all hosts)
+- **MaxIdleConnsPerHost**: 100 (idle connections per Alternator node)
+- **IdleConnTimeout**: 6 hours (how long idle connections are kept alive)
+
+**For high-throughput workloads**, you can increase these limits:
+
+```go
+h, err := helper.NewHelper(
+    []string{"x.x.x.x"},
+    helper.WithMaxIdleHTTPConnections(200),           // Total connections
+    helper.WithIdleHTTPConnectionTimeout(12*time.Hour), // Keep-alive duration
+)
+```
+
+**Important**: When using `WithMaxIdleHTTPConnections(N)`, the client automatically sets `MaxIdleConnsPerHost` to the same value `N`, ensuring each node can fully utilize the connection pool.
+
+**Connection reuse benefits**:
+- **Reduced latency**: No TCP handshake or TLS negotiation on reused connections
+- **Lower server load**: Fewer connection establishment operations
+- **Better throughput**: Especially important for HTTPS workloads
+- **Network efficiency**: Fewer packets and reduced bandwidth for connection setup
+
+
 ## Distinctive features
 
 ### Headers optimization

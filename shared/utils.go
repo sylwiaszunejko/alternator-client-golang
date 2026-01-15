@@ -10,6 +10,7 @@ import (
 func DefaultHTTPTransport() *http.Transport {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.IdleConnTimeout = defaultIdleConnectionTimeout
+	transport.MaxIdleConnsPerHost = 100
 	return transport
 }
 
@@ -27,6 +28,7 @@ func NewALNHTTPTransport(config ALNConfig) http.RoundTripper {
 func PatchHTTPTransport(config ALNConfig, transport *http.Transport) http.RoundTripper {
 	transport.IdleConnTimeout = config.IdleHTTPConnectionTimeout
 	transport.MaxIdleConns = config.MaxIdleHTTPConnections
+	transport.MaxIdleConnsPerHost = config.MaxIdleHTTPConnections
 
 	if transport.TLSClientConfig == nil {
 		transport.TLSClientConfig = &tls.Config{}
